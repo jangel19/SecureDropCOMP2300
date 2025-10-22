@@ -1,0 +1,10 @@
+{
+  "users": [
+    {
+      "full_name": "jordi sd",
+      "email": "asdf@hotl.com",
+      "password_salt": "21tEWGcSVUh7MJeplyDtsw==",
+      "password_hash": "b1d5f07c0be50a7065c01ad10903e34311f400ad161301de51a8a78b4943762c"
+    }
+  ]
+}
