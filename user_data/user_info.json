@@ -1,12 +1,6 @@
 {
   "users": [
     {
-<<<<<<< HEAD
-      "full_name": "priyanshi",
-      "email": "priyanshi@fg.com",
-      "password_salt": "mNTyt5mCljjyOw9KPcBFxA==",
-      "password_hash": "48681f681e97eedb4e29756d07f89fc94e0cb6a8e692e407ced3055affc479fb"
-=======
       "full_name": "helen",
       "email": "helen@gmail.com",
       "password_salt": "DkKmOqZBGaQtuDp3gT7clA==",
@@ -17,7 +11,6 @@
           "email": "manny@gmail.com"
         }
       ]
->>>>>>> milestone2
     }
   ]
 }
