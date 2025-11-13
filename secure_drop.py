@@ -108,7 +108,56 @@ def login(db):
     # LOGIN SUCCESSFUL
     print("Welcome to SecureDrop.")
     print('Type "help" For Commands.')
+<<<<<<< HEAD
     return True
+=======
+    return user
+
+def add_contact(current_user, db):
+    print("\nEnter Full name: ", end="")
+    full_name = input().strip()
+    
+    print("Enter Email Address: ", end="")
+    email = input().strip().lower()
+    
+    #check if contact already exists
+    current_user["contacts"] = [
+        c for c in current_user.get("contacts", []) if c["email"].lower() != email
+    ]
+    
+    #add new contact
+    contact = {
+        "full_name": full_name,
+        "email": email
+    }
+    current_user["contacts"].append(contact)
+    
+    #save entire DB
+    save_users(db)
+    print("Contact Added.\n")
+    
+def shell(current_user, db):
+    while True:
+        cmd = input("secure_drop> ").strip().lower()
+
+        if cmd == "add":
+            add_contact(current_user, db)
+
+        elif cmd == "help":
+            print('"add"  -> Add a new contact')
+            print('"exit" -> Exit SecureDrop')
+
+        elif cmd == "exit":
+            print("Exiting SecureDrop.")
+            return
+
+        else:
+            print("Unknown command. Type \"help\".")
+            
+            
+
+
+>>>>>>> milestone2
 
 def main():
 
@@ -120,11 +169,19 @@ def main():
         db = register_user(db)
         return 
     #otherwise, we can try to login
+<<<<<<< HEAD
     while True:
         success = login(db)
         if success:
             #placeholder 
             return
+=======
+    current_user = None 
+    while not current_user:
+        current_user = login(db)
+    #once logged in we can enter the shell
+    shell(current_user, db)
+>>>>>>> milestone2
 
 if __name__ == "__main__":
     main()
