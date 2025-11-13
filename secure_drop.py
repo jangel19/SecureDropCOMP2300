@@ -5,6 +5,9 @@ import os, json, hashlib, base64
 #i also noticed rn that there is a bug that wont let me run it unless the user info json is empty
 #i will try to work on that later this week maybeee
 
+#note: the jason file cant be all empty it has to have the structure {"users": []} even if there are no users
+# that is probably why it wasnt working before. 
+
 USER_DB = "user_data/user_info.json"
 
 def getUsers():
@@ -78,16 +81,95 @@ def register_user(db):
     print("Exiting SecureDrop.")
     return db
 
+def login(db):
+    print("Enter Email Address: ", end="")
+    email = input().strip().lower()
+
+    print("Enter Password: ", end="")
+    pwd = input().strip()
+
+    # Find the user in DB
+    users = db.get("users", [])
+    user = findeusr(users, email)
+
+    if user is None:
+        print("Email and Password Combination Invalid.\n")
+        return False
+
+    # Re-hash the input password using stored salt
+    salt = user["password_salt"]
+    expected_hash = user["password_hash"]
+    given_hash = simple_hash(salt, pwd)
+
+    if given_hash != expected_hash:
+        print("Email and Password Combination Invalid.\n")
+        return False
+
+    # LOGIN SUCCESSFUL
+    print("Welcome to SecureDrop.")
+    print('Type "help" For Commands.')
+    return user
+
+def add_contact(current_user, db):
+    print("\nEnter Full name: ", end="")
+    full_name = input().strip()
+    
+    print("Enter Email Address: ", end="")
+    email = input().strip().lower()
+    
+    #check if contact already exists
+    current_user["contacts"] = [
+        c for c in current_user.get("contacts", []) if c["email"].lower() != email
+    ]
+    
+    #add new contact
+    contact = {
+        "full_name": full_name,
+        "email": email
+    }
+    current_user["contacts"].append(contact)
+    
+    #save entire DB
+    save_users(db)
+    print("Contact Added.\n")
+    
+def shell(current_user, db):
+    while True:
+        cmd = input("secure_drop> ").strip().lower()
+
+        if cmd == "add":
+            add_contact(current_user, db)
+
+        elif cmd == "help":
+            print('"add"  -> Add a new contact')
+            print('"exit" -> Exit SecureDrop')
+
+        elif cmd == "exit":
+            print("Exiting SecureDrop.")
+            return
+
+        else:
+            print("Unknown command. Type \"help\".")
+            
+            
+
+
+
 def main():
 
     db = getUsers()
 
+    #if there are no users we have to register one
     if len(db["users"]) == 0:
         print("No users are registered with this client.")
         db = register_user(db)
-    else:
-        print("A user is already registered with this client.")
-        return
+        return 
+    #otherwise, we can try to login
+    current_user = None 
+    while not current_user:
+        current_user = login(db)
+    #once logged in we can enter the shell
+    shell(current_user, db)
 
 if __name__ == "__main__":
     main()
