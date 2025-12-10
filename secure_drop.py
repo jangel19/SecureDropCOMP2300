@@ -108,9 +108,6 @@ def login(db):
     # LOGIN SUCCESSFUL
     print("Welcome to SecureDrop.")
     print('Type "help" For Commands.')
-<<<<<<< HEAD
-    return True
-=======
     return user
 
 def add_contact(current_user, db):
@@ -149,6 +146,7 @@ def shell(current_user, db):
 
         elif cmd == "exit":
             print("Exiting SecureDrop.")
+            exit()
             return
 
         else:
@@ -157,7 +155,6 @@ def shell(current_user, db):
             
 
 
->>>>>>> milestone2
 
 def main():
 
@@ -169,19 +166,11 @@ def main():
         db = register_user(db)
         return 
     #otherwise, we can try to login
-<<<<<<< HEAD
-    while True:
-        success = login(db)
-        if success:
-            #placeholder 
-            return
-=======
-    current_user = None 
-    while not current_user:
-        current_user = login(db)
-    #once logged in we can enter the shell
-    shell(current_user, db)
->>>>>>> milestone2
+
+    user = login(db)
+    if user:
+        while True:
+            shell(user,db)
 
 if __name__ == "__main__":
     main()
