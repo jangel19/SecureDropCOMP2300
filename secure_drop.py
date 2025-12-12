@@ -1,51 +1,45 @@
 import os, json, hashlib, base64
-#i have this for now there are some issues with the directories but nothing too major you have
-#to run the file from user-reg was in an src dir but had issues with user_data displaying yall
-#are more than welcome to add or fix anything
-#i also noticed rn that there is a bug that wont let me run it unless the user info json is empty
-#i will try to work on that later this week maybeee
+from milestone4_network import NetworkDiscovery, list_contacts
 
-#note: the jason file cant be all empty it has to have the structure {"users": []} even if there are no users
-# that is probably why it wasnt working before. 
+# Note: the json file can't be all empty it has to have the structure {"users": []} even if there are no users
+# that is probably why it wasn't working before.
 
 USER_DB = "user_data/user_info.json"
 
 def getUsers():
-    #lods the user db from json file
-    #if its empty it js returns the empty struct
+    """Loads the user db from json file
+    If it's empty it just returns the empty struct"""
     if not os.path.exists(USER_DB):
-        return{"users": []}
+        os.makedirs("user_data", exist_ok=True)
+        return {"users": []}
     with open(USER_DB, "r", encoding="utf-8") as f:
         return json.load(f)
 
 def save_users(data):
-    #this saves teh users info to the json indent is js aesthetics lol
+    """This saves the users info to the json. indent is just aesthetics lol"""
+    os.makedirs("user_data", exist_ok=True)
     with open(USER_DB, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 
-def make_salt(length = 16):
-    #thisll just make a random salt val for the pwd hashing
-    #each user gets a diff salt we use base64 for the encoding (go into json)
+def make_salt(length=16):
+    """This'll just make a random salt val for the pwd hashing
+    Each user gets a diff salt. We use base64 for the encoding (go into json)"""
     return base64.b64encode(os.urandom(length)).decode("utf-8")
 
 def simple_hash(salt, pwd):
-    #combine th esalt and pwd into a string then hash it
+    """Combine the salt and pwd into a string then hash it"""
     combo = (salt + pwd).encode("utf-8")
     return hashlib.sha256(combo).hexdigest()
 
 def findeusr(users, email):
-    #will go through json and return the user that matchs
+    """Will go through json and return the user that matches"""
     for u in users:
         if u["email"].lower() == email.lower():
             return u
     return None
 
-
-
-
 def register_user(db):
-    #now we get user input abotu registersting
-
+    """Now we get user input about registering"""
     print("Do you want to register a new user (y/n)? ", end="")
     if input().strip().lower() != "y":
         print("Exiting SecureDrop.")
@@ -69,8 +63,10 @@ def register_user(db):
         "email": email,
         "password_salt": salt,
         "password_hash": pwd_hash,
+        "contacts": []  # Initialize empty contacts list
     }
 
+    # Remove any existing user with same email
     db["users"] = [u for u in db["users"] if u["email"].lower() != email]
 
     db["users"].append(user)
@@ -82,6 +78,7 @@ def register_user(db):
     return db
 
 def login(db):
+    """Handle user login"""
     print("Enter Email Address: ", end="")
     email = input().strip().lower()
 
@@ -111,66 +108,95 @@ def login(db):
     return user
 
 def add_contact(current_user, db):
-    print("\nEnter Full name: ", end="")
+    """Add a new contact (Milestone 3)"""
+    print("\nEnter Full Name: ", end="")
     full_name = input().strip()
-    
+
     print("Enter Email Address: ", end="")
     email = input().strip().lower()
-    
-    #check if contact already exists
+
+    # Ensure contacts list exists
+    if "contacts" not in current_user:
+        current_user["contacts"] = []
+
+    # Check if contact already exists - remove to overwrite
     current_user["contacts"] = [
         c for c in current_user.get("contacts", []) if c["email"].lower() != email
     ]
-    
-    #add new contact
+
+    # Add new contact
     contact = {
         "full_name": full_name,
         "email": email
     }
     current_user["contacts"].append(contact)
-    
-    #save entire DB
+
+    # Save entire DB to JSON file
+    # (current_user is a reference to the user object in db["users"])
     save_users(db)
     print("Contact Added.\n")
-    
-def shell(current_user, db):
+
+def shell(current_user, db, discovery):
+    """Main command shell (secure_drop>)"""
     while True:
-        cmd = input("secure_drop> ").strip().lower()
+        try:
+            cmd = input("secure_drop> ").strip().lower()
 
-        if cmd == "add":
-            add_contact(current_user, db)
+            if cmd == "add":
+                add_contact(current_user, db)
 
-        elif cmd == "help":
-            print('"add"  -> Add a new contact')
-            print('"exit" -> Exit SecureDrop')
+            elif cmd == "list":
+                # Milestone 4: List online contacts
+                list_contacts(discovery)
 
-        elif cmd == "exit":
-            print("Exiting SecureDrop.")
-            exit()
+            elif cmd == "send":
+                print("File transfer feature (Milestone 5) - Coming soon!")
+                print("Use the C++ client/server for now.")
+
+            elif cmd == "help":
+                print('"add"  -> Add a new contact')
+                print('"list" -> List all online contacts')
+                print('"send" -> Transfer file to contact')
+                print('"exit" -> Exit SecureDrop')
+
+            elif cmd == "exit":
+                print("Exiting SecureDrop.")
+                discovery.stop()
+                return
+
+            else:
+                print('Unknown command. Type "help".')
+
+        except KeyboardInterrupt:
+            print("\nExiting SecureDrop.")
+            discovery.stop()
             return
-
-        else:
-            print("Unknown command. Type \"help\".")
-            
-            
-
-
+        except Exception as e:
+            print(f"Error: {e}")
 
 def main():
-
+    """Main application entry point"""
     db = getUsers()
 
-    #if there are no users we have to register one
+    # If there are no users we have to register one
     if len(db["users"]) == 0:
         print("No users are registered with this client.")
         db = register_user(db)
-        return 
-    #otherwise, we can try to login
+        return
 
+    # Otherwise, we can try to login
     user = login(db)
     if user:
-        while True:
-            shell(user,db)
+        # Start network discovery (Milestone 4)
+        discovery = NetworkDiscovery(user, db)
+        discovery.start()
+
+        # Give discovery a moment to initialize
+        import time
+        time.sleep(1)
+
+        # Enter main shell
+        shell(user, db, discovery)
 
 if __name__ == "__main__":
     main()
