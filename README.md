@@ -51,7 +51,7 @@ The final system supports:
 - Implemented digest creation on the client and verification on the server.  
 - Ensured correct byte ordering and comparison.
 
-### Milestone 5 – Full C++ Secure Transfer Implementation  
+### Milestone 5 – Full C++ Secure Transfer Implementation and Documentation
 **Completed by:** Jordi  
 - Rebuilt the system in C++ using OpenSSL.  
 - Implemented AES-256-CBC encryption and decryption using EVP.  
