@@ -1,4 +1,4 @@
-import os, json, hashlib, base64
+import os, json, hashlib, base64, subprocess, time
 from milestone4_network import NetworkDiscovery, list_contacts
 
 # Note: the json file can't be all empty it has to have the structure {"users": []} even if there are no users
@@ -150,8 +150,40 @@ def shell(current_user, db, discovery):
                 list_contacts(discovery)
 
             elif cmd == "send":
-                print("File transfer feature (Milestone 5) - Coming soon!")
-                print("Use the C++ client/server for now.")
+                # print("File transfer feature (Milestone 5) - Coming soon!")
+                # print("Use the C++ client/server for now.")
+                online = discovery.get_online_contacts()
+
+                if not online :
+                    print ("no online connections are avaible rn")
+                    continue
+                print("\n select a contact:")
+                for i, c in enumerate(online):
+                    print(f"{i+1}) {c['full_name']} <{c['email']}>")
+                try:
+                    choice = int(input("enter a number: ")) - 1
+                    contact = online[choice]
+                except:
+                    print("invalid selction")
+                    continue
+
+                filename = input("enter filename to send:").strip()
+                if not os.path.exists(filename):
+                    print("file does not exist")
+                    continue
+
+                ip = contact["ip"]
+
+                print("\n Securedrop file transfer is starting")
+                print("launching the receive server")
+
+                subprocess.Popen(["./server"])
+
+                time.sleep(1)
+                print("sending encrypted file")
+                subprocess.run(["./client", ip, filename])
+                print("Secure transfer completed.")
+
 
             elif cmd == "help":
                 print('"add"  -> Add a new contact')

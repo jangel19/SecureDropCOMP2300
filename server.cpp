@@ -49,6 +49,7 @@ int main() {
         return 1;
     }
     cout << "Server listening on 6767...\n";
+    cout << "Secure drop waiting for incoming file: " << endl;
 
     sockaddr_in client_addr{};
     socklen_t client_len = sizeof(client_addr);

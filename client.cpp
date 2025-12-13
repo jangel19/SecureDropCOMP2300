@@ -25,7 +25,7 @@ unsigned char iv[16] = {
 
 vector<unsigned char> encryptAES(const vector<unsigned char>& pText, const unsigned char key[32],
                                 const unsigned char iv[16]);
-int main() {
+int main(int argc, char* argv[]) {
 
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock < 0) {
@@ -33,8 +33,14 @@ int main() {
         return 1;
     }
 
-    // open file
-    const char* filename = "test.txt";
+    // open file(update to integrate cpp to python milestones 1-4)
+    if (argc != 3) {
+        std::cerr << "usign: ./cliet <server_ip> <filename>" << endl;
+        return 1;
+    }
+    const char* server_ip = argv[1];
+    const char* filename = argv[2];
+    
     FILE* fp = fopen(filename, "rb");
     if(!fp) {
         std::cerr << "error could not open the file" << endl;
@@ -54,7 +60,7 @@ int main() {
     sockaddr_in server_addr{};
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(6767);
-    inet_pton(AF_INET, "127.0.0.1", &server_addr.sin_addr);
+    inet_pton(AF_INET, server_ip, &server_addr.sin_addr);
 
     if(connect(sock, (sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
         std::cerr << "connection has failed" << endl;
