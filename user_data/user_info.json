@@ -1,10 +1,10 @@
 {
   "users": [
     {
-      "full_name": "manny",
-      "email": "manny@student.com",
-      "password_salt": "NXbRg5v84CAH7eN/93169A==",
-      "password_hash": "c2d971bd30ca3b3e2281f5c7b20d6a3fd46a3b71d03cd84e43ab5443caa07f35",
+      "full_name": "jordi",
+      "email": "jordi@student.com",
+      "password_salt": "a6KZrWXetBgK4S0RnZ/QFw==",
+      "password_hash": "f18a3b8c4c82335fe94dd5f27540692ff0027277c595bbfad75e87321701352c",
       "contacts": []
     }
   ]

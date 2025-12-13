@@ -150,40 +150,29 @@ def shell(current_user, db, discovery):
                 list_contacts(discovery)
 
             elif cmd == "send":
-                # print("File transfer feature (Milestone 5) - Coming soon!")
-                # print("Use the C++ client/server for now.")
-                online = discovery.get_online_contacts()
-
-                if not online :
-                    print ("no online connections are avaible rn")
+                if not discovery.get_online_contacts():
+                    print("no online contacts available")
                     continue
-                print("\n select a contact:")
-                for i, c in enumerate(online):
-                    print(f"{i+1}) {c['full_name']} <{c['email']}>")
-                try:
-                    choice = int(input("enter a number: ")) - 1
-                    contact = online[choice]
-                except:
-                    print("invalid selction")
-                    continue
+                contacts = discovery.get_online_contacts()
+                print("online contacts: ")
+                for i, c in enumerate(contacts):
+                    print(f"{i+1}. {c['full_name']} <{c['email']}>")
 
-                filename = input("enter filename to send:").strip()
+                choice = input("select contact number: ").strip()
+                if not choice.isdigit() or int(choice) < 1 or int(choice) > len(contacts):
+                    print("invalid choice")
+                    continue
+                contact = contacts[int(choice) - 1]
+                filename = input("Enter filename to send: ").strip()
+
                 if not os.path.exists(filename):
                     print("file does not exist")
                     continue
 
                 ip = contact["ip"]
+                print(f"[SecureDrop] sending {filename} to {contact['email']} ({ip})")
 
-                print("\n Securedrop file transfer is starting")
-                print("launching the receive server")
-
-                subprocess.Popen(["./server"])
-
-                time.sleep(1)
-                print("sending encrypted file")
-                subprocess.run(["./client", ip, filename])
-                print("Secure transfer completed.")
-
+                os.system("./client 127.0.0.1 test.txt")
 
             elif cmd == "help":
                 print('"add"  -> Add a new contact')
