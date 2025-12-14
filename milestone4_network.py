@@ -160,7 +160,7 @@ class NetworkDiscovery:
         """Listen for UDP broadcasts from other contacts"""
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        # sock.bind(('', BROADCAST_PORT)) commented out for testing purposes
+        sock.bind(('', BROADCAST_PORT)) #commented out for testing purposes
 
         try:
             while self.running:
@@ -375,7 +375,7 @@ class NetworkDiscovery:
             target=self._send_broadcast,
             daemon=True
         )
-        # self.broadcast_thread.start() commented out for local testing
+        self.broadcast_thread.start() #commented out for local testing
 
         # Start listener thread
         self.listen_thread = threading.Thread(
@@ -392,13 +392,13 @@ class NetworkDiscovery:
         self.handshake_thread.start()
 
         #demo injection
-        self.online_contacts["demo@student.com"] = {
-            "email": "demo@student.com",
-            "full_name": "manny demo",
-            "ip": "127.0.0.1",
-            "public_key": self.public_key_pem,
-            "last_seen": time.time()
-        }
+        # self.online_contacts["demo@student.com"] = {
+        #     "email": "demo@student.com",
+        #     "full_name": "manny demo",
+        #     "ip": "127.0.0.1",
+        #     "public_key": self.public_key_pem,
+        #     "last_seen": time.time()
+        # }
 
         print("[Network Discovery Started]")
 
