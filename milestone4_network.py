@@ -210,6 +210,8 @@ class NetworkDiscovery:
 
     def _perform_handshake(self, contact_email, contact_ip, contact_public_key):
         """Perform mutual authentication handshake"""
+        if self.current_user["email"].lower() > contact_email.lower():
+            return True
         try:
             # Create handshake socket
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -225,7 +227,8 @@ class NetworkDiscovery:
             auth_request = {
                 "type": "auth_request",
                 "email": self.current_user["email"],
-                "contacts": [c["email"].lower() for c in self.current_user.get("contacts", [])]
+                "public_key": self.public_key_pem,
+                "contacts": [...]
             }
 
             encrypted_request = self._encrypt_message(
@@ -336,11 +339,9 @@ class NetworkDiscovery:
                 return
 
             # Get their public key from online contacts or request
-            contact_info = self.online_contacts.get(contact_email.lower(), {})
-            contact_public_key = contact_info.get("public_key")
+            contact_public_key = auth_request.get("public_key")
 
             if not contact_public_key:
-                # We don't have their public key yet, can't respond
                 client_sock.close()
                 return
 
