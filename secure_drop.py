@@ -150,29 +150,28 @@ def shell(current_user, db, discovery):
                 list_contacts(discovery)
 
             elif cmd == "send":
-                if not discovery.get_online_contacts():
-                    print("no online contacts available")
+                online = discovery.get_online_contacts()
+                if not online:
+                    print("No online contacts are available right now.")
                     continue
-                contacts = discovery.get_online_contacts()
-                print("online contacts: ")
-                for i, c in enumerate(contacts):
-                    print(f"{i+1}. {c['full_name']} <{c['email']}>")
+
+                print("online contacts:")
+                for i, contact in enumerate(online, 1):
+                     print(f"{i}. {contact['full_name']} <{contact['email']}>")
 
                 choice = input("select contact number: ").strip()
-                if not choice.isdigit() or int(choice) < 1 or int(choice) > len(contacts):
-                    print("invalid choice")
-                    continue
-                contact = contacts[int(choice) - 1]
+                if not choice.isdigit() or int(choice) < 1 or int(choice) > len(online):
+                        print("Invalid selection.")
+                        continue
+
+                selected_contact = online[int(choice) - 1]
+
                 filename = input("Enter filename to send: ").strip()
+                receiver_ip = selected_contact["ip"]
 
-                if not os.path.exists(filename):
-                    print("file does not exist")
-                    continue
+                print(f"[SecureDrop] sending {filename} to {selected_contact['email']} ({receiver_ip})")
 
-                ip = contact["ip"]
-                print(f"[SecureDrop] sending {filename} to {contact['email']} ({ip})")
-
-                subprocess.run(["./client", ip, filename], check=False)
+                os.system(f"python3 client.py {receiver_ip} {filename}")
 
             elif cmd == "help":
                 print('"add"  -> Add a new contact')
