@@ -217,9 +217,9 @@ class NetworkDiscovery:
 
             try:
                 sock.connect((contact_ip, HANDSHAKE_PORT))
-            except:
-                # If we can't connect, start listening for their connection
-                return self._wait_for_handshake(contact_email, contact_public_key)
+
+            except socket.timeout:
+                return False
 
             # Send our authentication request (encrypted)
             auth_request = {
@@ -238,11 +238,14 @@ class NetworkDiscovery:
                 return False
 
             request_data = json.dumps({"encrypted": encrypted_request})
-            sock.send(request_data.encode('utf-8'))
+            sock.sendall(request_data.encode('utf-8'))
 
             # Receive response
-            response_data = sock.recv(4096).decode('utf-8')
-            response = json.loads(response_data)
+            response_data = sock.recv(4096)
+            if not response_data:
+                 raise Exception("Empty handshake response")
+
+            response = json.loads(response_data.decode("utf-8"))
 
             # Decrypt response
             decrypted_response = self._decrypt_message(response.get("encrypted", ""))
