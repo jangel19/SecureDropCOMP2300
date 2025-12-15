@@ -2,16 +2,19 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
 .env
 .venv/
 venv/
 ENV/
 env/
 
-certs/*.key
-certs/*.crt
-certs/*.pem
-certs/*.csr
+certs/
+*.key
+*.crt
+*.pem
+*.csr
+*.srl
 
 user_data/
 received/
@@ -19,10 +22,10 @@ received/
 client
 server
 *.o
+
 .DS_Store
 .vscode/
 .idea/
 
 *.log
-
 .gitmodules
