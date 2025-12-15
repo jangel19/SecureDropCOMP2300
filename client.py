@@ -5,7 +5,10 @@ import sys
 from tls import create_secure_client, analyze_connection_security
 
 PORT = 8443
-CA_CERT = "certs/ca.crt"
+
+CA_CERT     = "certs/ca.crt"
+CLIENT_CERT = "certs/client.crt"
+CLIENT_KEY  = "certs/client.key"
 
 
 def send_file(receiver_ip, filepath):
@@ -13,14 +16,20 @@ def send_file(receiver_ip, filepath):
         print("Error: file does not exist")
         return
 
-    # get TLS-secured connection
-    sock = create_secure_client(receiver_ip, PORT, CA_CERT)
+    # establish mutual-TLS connection
+    sock = create_secure_client(
+        receiver_ip,
+        PORT,
+        CA_CERT,
+        CLIENT_CERT,
+        CLIENT_KEY
+    )
 
-    # print TLS details
+    # print TLS security details
     tls_info = analyze_connection_security(sock)
     print("TLS Info:", tls_info)
 
-    # random sequence number
+    # random sequence number (replay protection)
     seq = secrets.randbits(64)
 
     filename = os.path.basename(filepath).encode()
@@ -39,7 +48,7 @@ def send_file(receiver_ip, filepath):
         sock.close()
         return
 
-    # send the file contents
+    # send file contents
     with open(filepath, "rb") as f:
         while True:
             chunk = f.read(4096)
