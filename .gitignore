@@ -9,15 +9,15 @@ venv/
 ENV/
 env/
 
-certs/
-*.key
-*.crt
-*.pem
-*.csr
-*.srl
+certs/*
+!certs/.gitkeep
 
-user_data/
-received/
+user_data/*
+!user_data/.gitkeep
+!user_data/user_info.json
+
+received/*
+!received/.gitkeep
 
 client
 server
