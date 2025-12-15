@@ -3,7 +3,7 @@
 #include <openssl/aes.h>
 #include <iostream>
 #include <vector>
-#include <string>
+#include <cstring>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
     }
     const char* server_ip = argv[1];
     const char* filename = argv[2];
-    
+
     FILE* fp = fopen(filename, "rb");
     if(!fp) {
         std::cerr << "error could not open the file" << endl;

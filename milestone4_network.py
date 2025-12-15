@@ -11,6 +11,7 @@ import base64
 # Configuration
 BROADCAST_PORT = 5000
 DISCOVERY_PORT = 5001
+HANDSHAKE_PORT = 5002
 BROADCAST_INTERVAL = 5  # seconds
 DISCOVERY_MESSAGE = "SECUREDROP_DISCOVERY"
 
@@ -215,7 +216,7 @@ class NetworkDiscovery:
             sock.settimeout(3.0)
 
             try:
-                sock.connect((contact_ip, DISCOVERY_PORT))
+                sock.connect((contact_ip, HANDSHAKE_PORT))
             except:
                 # If we can't connect, start listening for their connection
                 return self._wait_for_handshake(contact_email, contact_public_key)
@@ -282,7 +283,7 @@ class NetworkDiscovery:
         """Listen for incoming authentication handshakes"""
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.bind(('', DISCOVERY_PORT))
+        sock.bind(('', HANDSHAKE_PORT))
         sock.listen(5)
         sock.settimeout(1.0)
 

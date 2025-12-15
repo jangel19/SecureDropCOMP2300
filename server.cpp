@@ -2,7 +2,7 @@
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 #include <openssl/aes.h>
-#include <string>
+#include <cstring>
 #include <vector>
 #include <sys/socket.h>
 #include <netinet/in.h>

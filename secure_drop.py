@@ -172,7 +172,7 @@ def shell(current_user, db, discovery):
                 ip = contact["ip"]
                 print(f"[SecureDrop] sending {filename} to {contact['email']} ({ip})")
 
-                os.system("./client 127.0.0.1 test.txt")
+                subprocess.run(["./client", ip, filename], check=False)
 
             elif cmd == "help":
                 print('"add"  -> Add a new contact')
