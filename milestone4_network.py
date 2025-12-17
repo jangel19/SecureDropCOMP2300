@@ -11,7 +11,6 @@ import base64
 # Configuration
 BROADCAST_PORT = 5000
 DISCOVERY_PORT = 5001
-HANDSHAKE_PORT = 5002
 BROADCAST_INTERVAL = 5  # seconds
 DISCOVERY_MESSAGE = "SECUREDROP_DISCOVERY"
 
@@ -161,7 +160,7 @@ class NetworkDiscovery:
         """Listen for UDP broadcasts from other contacts"""
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.bind(('', BROADCAST_PORT)) #commented out for testing purposes
+        sock.bind(('', BROADCAST_PORT))
 
         try:
             while self.running:
@@ -210,25 +209,22 @@ class NetworkDiscovery:
 
     def _perform_handshake(self, contact_email, contact_ip, contact_public_key):
         """Perform mutual authentication handshake"""
-        if self.current_user["email"].lower() > contact_email.lower():
-            return True
         try:
             # Create handshake socket
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(3.0)
 
             try:
-                sock.connect((contact_ip, HANDSHAKE_PORT))
-
-            except socket.timeout:
-                return False
+                sock.connect((contact_ip, DISCOVERY_PORT))
+            except:
+                # If we can't connect, start listening for their connection
+                return self._wait_for_handshake(contact_email, contact_public_key)
 
             # Send our authentication request (encrypted)
             auth_request = {
                 "type": "auth_request",
                 "email": self.current_user["email"],
-                "public_key": self.public_key_pem,
-                "contacts": [...]
+                "contacts": [c["email"].lower() for c in self.current_user.get("contacts", [])]
             }
 
             encrypted_request = self._encrypt_message(
@@ -241,14 +237,11 @@ class NetworkDiscovery:
                 return False
 
             request_data = json.dumps({"encrypted": encrypted_request})
-            sock.sendall(request_data.encode('utf-8'))
+            sock.send(request_data.encode('utf-8'))
 
             # Receive response
-            response_data = sock.recv(4096)
-            if not response_data:
-                 raise Exception("Empty handshake response")
-
-            response = json.loads(response_data.decode("utf-8"))
+            response_data = sock.recv(4096).decode('utf-8')
+            response = json.loads(response_data)
 
             # Decrypt response
             decrypted_response = self._decrypt_message(response.get("encrypted", ""))
@@ -289,7 +282,7 @@ class NetworkDiscovery:
         """Listen for incoming authentication handshakes"""
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.bind(('', HANDSHAKE_PORT))
+        sock.bind(('', DISCOVERY_PORT))
         sock.listen(5)
         sock.settimeout(1.0)
 
@@ -339,9 +332,11 @@ class NetworkDiscovery:
                 return
 
             # Get their public key from online contacts or request
-            contact_public_key = auth_request.get("public_key")
+            contact_info = self.online_contacts.get(contact_email.lower(), {})
+            contact_public_key = contact_info.get("public_key")
 
             if not contact_public_key:
+                # We don't have their public key yet, can't respond
                 client_sock.close()
                 return
 
@@ -380,7 +375,7 @@ class NetworkDiscovery:
             target=self._send_broadcast,
             daemon=True
         )
-        self.broadcast_thread.start() #commented out for local testing
+        self.broadcast_thread.start()
 
         # Start listener thread
         self.listen_thread = threading.Thread(
@@ -395,15 +390,6 @@ class NetworkDiscovery:
             daemon=True
         )
         self.handshake_thread.start()
-
-        #demo injection
-        # self.online_contacts["demo@student.com"] = {
-        #     "email": "demo@student.com",
-        #     "full_name": "manny demo",
-        #     "ip": "127.0.0.1",
-        #     "public_key": self.public_key_pem,
-        #     "last_seen": time.time()
-        # }
 
         print("[Network Discovery Started]")
 

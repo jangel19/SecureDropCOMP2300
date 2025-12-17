@@ -3,7 +3,7 @@
 #include <openssl/aes.h>
 #include <iostream>
 #include <vector>
-#include <cstring>
+#include <string>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
