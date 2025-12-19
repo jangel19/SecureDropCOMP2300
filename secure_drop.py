@@ -1,4 +1,4 @@
-import os, json, hashlib, base64, subprocess, time
+import os, json, hashlib, base64, time, subprocess
 from milestone4_network import NetworkDiscovery, list_contacts
 
 # Note: the json file can't be all empty it has to have the structure {"users": []} even if there are no users
@@ -107,6 +107,18 @@ def login(db):
     print('Type "help" For Commands.')
     return user
 
+def start_receiver_server():
+    try:
+        subprocess.Popen(
+            ["./server"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
+        print("[Receiver server running]")
+        time.sleep(1)
+    except Exception as e:
+        print(f"Could not start receiver server: {e}")
+
 def add_contact(current_user, db):
     """Add a new contact (Milestone 3)"""
     print("\nEnter Full Name: ", end="")
@@ -150,40 +162,41 @@ def shell(current_user, db, discovery):
                 list_contacts(discovery)
 
             elif cmd == "send":
-                # print("File transfer feature (Milestone 5) - Coming soon!")
-                # print("Use the C++ client/server for now.")
                 online = discovery.get_online_contacts()
 
-                if not online :
-                    print ("no online connections are avaible rn")
-                    continue
-                print("\n select a contact:")
-                for i, c in enumerate(online):
-                    print(f"{i+1}) {c['full_name']} <{c['email']}>")
-                try:
-                    choice = int(input("enter a number: ")) - 1
-                    contact = online[choice]
-                except:
-                    print("invalid selction")
+                if not online:
+                    print("No online connections are available right now.")
                     continue
 
-                filename = input("enter filename to send:").strip()
+                print("\nSelect a contact:")
+                for i, c in enumerate(online):
+                    print(f"{i+1}) {c['full_name']} <{c['email']}>")
+
+                try:
+                    choice = int(input("Enter a number: ")) - 1
+                    if choice < 0 or choice >= len(online):
+                        raise ValueError
+                    contact = online[choice]
+                except:
+                    print("Invalid selection.")
+                    continue
+
+                filename = input("Enter filename to send: ").strip()
                 if not os.path.exists(filename):
-                    print("file does not exist")
+                    print("File does not exist.")
                     continue
 
                 ip = contact["ip"]
 
-                print("\n Securedrop file transfer is starting")
-                print("launching the receive server")
-
-                subprocess.Popen(["./server"])
+                print("\nSecureDrop file transfer starting...")
+                print("Make sure the receiver is running the server.")
 
                 time.sleep(1)
-                print("sending encrypted file")
-                subprocess.run(["./client", ip, filename])
-                print("Secure transfer completed.")
 
+                print("Sending encrypted file...")
+                subprocess.run(["./client", ip, "6767", filename])
+
+                print("Secure transfer completed.")
 
             elif cmd == "help":
                 print('"add"  -> Add a new contact')
@@ -219,6 +232,8 @@ def main():
     # Otherwise, we can try to login
     user = login(db)
     if user:
+        #added so i dont need to run ./server every time
+        start_receiver_server()
         # Start network discovery (Milestone 4)
         discovery = NetworkDiscovery(user, db)
         discovery.start()
@@ -229,6 +244,7 @@ def main():
 
         # Enter main shell
         shell(user, db, discovery)
+
 
 if __name__ == "__main__":
     main()

@@ -193,16 +193,16 @@ class NetworkDiscovery:
             # Check if this contact is in our contact list
             if not self._is_mutual_contact(contact_email):
                 return
+            self.online_contacts[contact_email.lower()] = {
+                "ip": addr[0],
+                "last_seen": time.time(),
+                "public_key": contact_public_key,
+                "full_name": self._get_contact_name(contact_email)
+            }
 
             # Perform mutual authentication handshake
             if self._perform_handshake(contact_email, addr[0], contact_public_key):
-                # Store online contact
-                self.online_contacts[contact_email.lower()] = {
-                    "ip": addr[0],
-                    "last_seen": time.time(),
-                    "public_key": contact_public_key,
-                    "full_name": self._get_contact_name(contact_email)
-                }
+                self.online_contacts[contact_email.lower()]["last_seen"] = time.time()
 
         except Exception as e:
             print(f"Error handling broadcast: {e}")
@@ -241,6 +241,9 @@ class NetworkDiscovery:
 
             # Receive response
             response_data = sock.recv(4096).decode('utf-8')
+            if not response_data:
+                sock.close()
+                return False
             response = json.loads(response_data)
 
             # Decrypt response
@@ -336,7 +339,9 @@ class NetworkDiscovery:
             contact_public_key = contact_info.get("public_key")
 
             if not contact_public_key:
-                # We don't have their public key yet, can't respond
+                # Respond with failure instead of closing silently
+                response = json.dumps({"error": "public_key_missing"})
+                client_sock.send(response.encode("utf-8"))
                 client_sock.close()
                 return
 

@@ -3,7 +3,7 @@
 #include <openssl/aes.h>
 #include <iostream>
 #include <vector>
-#include <string>
+#include <cstring>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -34,12 +34,13 @@ int main(int argc, char* argv[]) {
     }
 
     // open file(update to integrate cpp to python milestones 1-4)
-    if (argc != 3) {
-        std::cerr << "usign: ./cliet <server_ip> <filename>" << endl;
+    if (argc != 4) {
+        std::cerr << "usign: ./client <server_ip> <port> <filename>" << endl;
         return 1;
     }
     const char* server_ip = argv[1];
-    const char* filename = argv[2];
+    int port = atoi(argv[2]);
+    const char* filename = argv[3];
 
     FILE* fp = fopen(filename, "rb");
     if(!fp) {
@@ -59,7 +60,7 @@ int main(int argc, char* argv[]) {
     // connect to port
     sockaddr_in server_addr{};
     server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(6767);
+    server_addr.sin_port = htons(port);
     inet_pton(AF_INET, server_ip, &server_addr.sin_addr);
 
     if(connect(sock, (sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
